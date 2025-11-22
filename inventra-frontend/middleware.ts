@@ -1,13 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  // Redirect root to dashboard for demo
-  if (pathname === "/") {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
-  }
-
+  // No redirects - let pages handle their own routing
   return NextResponse.next()
 }
 
