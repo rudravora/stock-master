@@ -69,18 +69,18 @@ def update_product(id):
         return jsonify({'error': 'Product not found'}), 404
     
     name = data.get('name')
-    category = data.get('category')
+    category_id = data.get('category_id')
     unit_of_measure = data.get('unit_of_measure')
     reorder_level = data.get('reorder_level')
     
     cursor.execute('''
         UPDATE products 
         SET name = COALESCE(?, name),
-            category = COALESCE(?, category),
+            category_id = COALESCE(?, category_id),
             unit_of_measure = COALESCE(?, unit_of_measure),
             reorder_level = COALESCE(?, reorder_level)
         WHERE id = ?
-    ''', (name, category, unit_of_measure, reorder_level, id))
+    ''', (name, category_id, unit_of_measure, reorder_level, id))
     
     db.conn.commit()
     
