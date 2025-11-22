@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_cors import CORS
 from models import db
@@ -17,8 +18,8 @@ from transfers import transfers_bp
 from adjustments import adjustments_bp
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'stockmaster-secret-2025'
-CORS(app)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'stockmaster-secret-2025')
+CORS(app, origins=["*"])
 
 # Register Blueprints
 app.register_blueprint(auth_bp)

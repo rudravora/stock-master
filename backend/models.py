@@ -1,8 +1,10 @@
 import sqlite3
+import os
 
 class Database:
     def __init__(self):
-        self.conn = sqlite3.connect('database.db', check_same_thread=False)
+        db_path = os.environ.get('DATABASE_PATH', 'database.db')
+        self.conn = sqlite3.connect(db_path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.create_tables()
     
