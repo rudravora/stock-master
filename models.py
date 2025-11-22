@@ -93,6 +93,37 @@ class Database:
             )
         ''')
         
+        # Add to create_tables() method:
+
+        # 8. INTERNAL TRANSFERS TABLE
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS internal_transfers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                transfer_number TEXT UNIQUE NOT NULL,
+                product_id INTEGER NOT NULL,
+                quantity INTEGER NOT NULL,
+                from_location TEXT NOT NULL,
+                to_location TEXT NOT NULL,
+                status TEXT DEFAULT 'DRAFT',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            )
+        ''')
+
+        # 9. INVENTORY ADJUSTMENTS TABLE
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS inventory_adjustments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                adjustment_number TEXT UNIQUE NOT NULL,
+                product_id INTEGER NOT NULL,
+                system_quantity INTEGER NOT NULL,
+                counted_quantity INTEGER NOT NULL,
+                difference INTEGER NOT NULL,
+                reason TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES products(id)
+            )
+        ''')
         self.conn.commit()
         print("✅ All database tables created successfully!")
 
