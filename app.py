@@ -13,6 +13,8 @@ from password_reset import password_reset_bp
 from alerts import alerts_bp
 from profile import profile_bp
 from filters import filters_bp
+from transfers import transfers_bp
+from adjustments import adjustments_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'stockmaster-secret-2025'
@@ -31,6 +33,8 @@ app.register_blueprint(password_reset_bp)
 app.register_blueprint(alerts_bp)
 app.register_blueprint(profile_bp)
 app.register_blueprint(filters_bp)
+app.register_blueprint(transfers_bp)
+app.register_blueprint(adjustments_bp)
 
 @app.route('/api/health', methods=['GET'])
 def health():
