@@ -20,21 +20,43 @@ class Database:
             )
         ''')
         
-        # 2. PRODUCTS TABLE
+        # 2. CATEGORIES TABLE (Must be created BEFORE products)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 3. WAREHOUSES TABLE
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS warehouses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                code TEXT UNIQUE NOT NULL,
+                address TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # 4. PRODUCTS TABLE (with category_id)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 sku TEXT UNIQUE NOT NULL,
-                category TEXT,
+                category_id INTEGER,
                 unit_of_measure TEXT DEFAULT 'units',
                 current_stock INTEGER DEFAULT 0,
                 reorder_level INTEGER DEFAULT 10,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (category_id) REFERENCES categories(id)
             )
         ''')
         
-        # 3. RECEIPTS TABLE (Incoming Stock)
+        # 5. RECEIPTS TABLE (Incoming Stock)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS receipts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +67,7 @@ class Database:
             )
         ''')
         
-        # 4. RECEIPT ITEMS TABLE
+        # 6. RECEIPT ITEMS TABLE
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS receipt_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +79,7 @@ class Database:
             )
         ''')
         
-        # 5. DELIVERY ORDERS TABLE (Outgoing Stock)
+        # 7. DELIVERY ORDERS TABLE (Outgoing Stock)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS delivery_orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,7 +90,7 @@ class Database:
             )
         ''')
         
-        # 6. DELIVERY ITEMS TABLE
+        # 8. DELIVERY ITEMS TABLE
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS delivery_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +102,7 @@ class Database:
             )
         ''')
         
-        # 7. STOCK MOVEMENTS TABLE (Ledger)
+        # 9. STOCK MOVEMENTS TABLE (Ledger)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS stock_movements (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -93,9 +115,7 @@ class Database:
             )
         ''')
         
-        # Add to create_tables() method:
-
-        # 8. INTERNAL TRANSFERS TABLE
+        # 10. INTERNAL TRANSFERS TABLE
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS internal_transfers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,7 +130,7 @@ class Database:
             )
         ''')
 
-        # 9. INVENTORY ADJUSTMENTS TABLE
+        # 11. INVENTORY ADJUSTMENTS TABLE
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS inventory_adjustments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,40 +145,17 @@ class Database:
             )
         ''')
 
-        # 10. WAREHOUSES TABLE
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS warehouses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                code TEXT UNIQUE NOT NULL,
-                address TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
-        # 11. CATEGORIES TABLE
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS categories (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                description TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-
         # 12. PRODUCT LOCATIONS TABLE (Track stock per warehouse)
-        
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS products (
+            CREATE TABLE IF NOT EXISTS product_locations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                sku TEXT UNIQUE NOT NULL,
-                category_id INTEGER,
-                unit_of_measure TEXT DEFAULT 'units',
-                current_stock INTEGER DEFAULT 0,
-                reorder_level INTEGER DEFAULT 10,
+                product_id INTEGER NOT NULL,
+                warehouse_id INTEGER NOT NULL,
+                quantity INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (category_id) REFERENCES categories(id)
+                FOREIGN KEY (product_id) REFERENCES products(id),
+                FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+                UNIQUE(product_id, warehouse_id)
             )
         ''')
 
