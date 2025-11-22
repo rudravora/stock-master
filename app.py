@@ -5,6 +5,7 @@ from auth import auth_bp
 from products import products_bp
 from dashboard import dashboard_bp
 from receipts import receipts_bp
+from deliveries import deliveries_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'stockmaster-secret-2025'
@@ -15,6 +16,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(products_bp)
 app.register_blueprint(dashboard_bp)
 app.register_blueprint(receipts_bp)
+app.register_blueprint(deliveries_bp)
 
 @app.route('/api/health', methods=['GET'])
 def health():
