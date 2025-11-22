@@ -7,7 +7,7 @@ import AIChatbotWidget from "@/components/ai-chatbot-widget"
 const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 const _poppins = Poppins({ subsets: ["latin"], weight: ["400", "600", "700", "900"] })
-const _mirador = Mirador({ subsets: ["latin"] })
+const _mirador = Mirador({ subsets: ["latin"], weight: "400" })
 
 export const metadata: Metadata = {
   title: "Inventra - Inventory Management",
