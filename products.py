@@ -62,3 +62,42 @@ def get_product(id):
         return jsonify({'error': 'Product not found'}), 404
     
     return jsonify(dict(product)), 200
+
+@products_bp.route('/<int:id>', methods=['PUT'])
+def update_product(id):
+    """Update product details"""
+    data = request.json
+    cursor = db.conn.cursor()
+    
+    cursor.execute('SELECT * FROM products WHERE id = ?', (id,))
+    if not cursor.fetchone():
+        return jsonify({'error': 'Product not found'}), 404
+    
+    name = data.get('name')
+    category = data.get('category')
+    unit_of_measure = data.get('unit_of_measure')
+    reorder_level = data.get('reorder_level')
+    
+    cursor.execute('''
+        UPDATE products 
+        SET name = COALESCE(?, name),
+            category = COALESCE(?, category),
+            unit_of_measure = COALESCE(?, unit_of_measure),
+            reorder_level = COALESCE(?, reorder_level)
+        WHERE id = ?
+    ''', (name, category, unit_of_measure, reorder_level, id))
+    
+    db.conn.commit()
+    
+    cursor.execute('SELECT * FROM products WHERE id = ?', (id,))
+    product = cursor.fetchone()
+    
+    return jsonify(dict(product)), 200
+
+@products_bp.route('/<int:id>', methods=['DELETE'])
+def delete_product(id):
+    """Delete product"""
+    cursor = db.conn.cursor()
+    cursor.execute('DELETE FROM products WHERE id = ?', (id,))
+    db.conn.commit()
+    return jsonify({'message': 'Product deleted'}), 200
