@@ -124,6 +124,47 @@ class Database:
                 FOREIGN KEY (product_id) REFERENCES products(id)
             )
         ''')
+
+        # 10. WAREHOUSES TABLE
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS warehouses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                code TEXT UNIQUE NOT NULL,
+                address TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 11. CATEGORIES TABLE
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS categories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+
+        # 12. PRODUCT LOCATIONS TABLE (Track stock per warehouse)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS product_locations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                product_id INTEGER NOT NULL,
+                warehouse_id INTEGER NOT NULL,
+                quantity INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (product_id) REFERENCES products(id),
+                FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+                UNIQUE(product_id, warehouse_id)
+            )
+        ''')
+
+        # Also modify PRODUCTS TABLE to add category_id
+        cursor.execute('''
+            ALTER TABLE products ADD COLUMN category_id INTEGER REFERENCES categories(id)
+        ''')
+        
         self.conn.commit()
         print("✅ All database tables created successfully!")
 
