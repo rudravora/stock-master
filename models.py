@@ -147,24 +147,21 @@ class Database:
         ''')
 
         # 12. PRODUCT LOCATIONS TABLE (Track stock per warehouse)
+        
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS product_locations (
+            CREATE TABLE IF NOT EXISTS products (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                product_id INTEGER NOT NULL,
-                warehouse_id INTEGER NOT NULL,
-                quantity INTEGER DEFAULT 0,
+                name TEXT NOT NULL,
+                sku TEXT UNIQUE NOT NULL,
+                category_id INTEGER,
+                unit_of_measure TEXT DEFAULT 'units',
+                current_stock INTEGER DEFAULT 0,
+                reorder_level INTEGER DEFAULT 10,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (product_id) REFERENCES products(id),
-                FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
-                UNIQUE(product_id, warehouse_id)
+                FOREIGN KEY (category_id) REFERENCES categories(id)
             )
         ''')
 
-        # Also modify PRODUCTS TABLE to add category_id
-        cursor.execute('''
-            ALTER TABLE products ADD COLUMN category_id INTEGER REFERENCES categories(id)
-        ''')
-        
         self.conn.commit()
         print("✅ All database tables created successfully!")
 
