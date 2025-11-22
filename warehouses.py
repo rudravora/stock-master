@@ -116,10 +116,12 @@ def get_warehouse_stock(id):
             pl.*,
             p.name as product_name,
             p.sku,
-            p.category,
+            p.category_id,
+            c.name as category_name,
             p.unit_of_measure
         FROM product_locations pl
         JOIN products p ON pl.product_id = p.id
+        LEFT JOIN categories c ON p.category_id = c.id
         WHERE pl.warehouse_id = ?
         ORDER BY p.name ASC
     ''', (id,))
