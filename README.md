@@ -1,4 +1,4 @@
-# StockMaster - Inventory Management System
+# Inventra - Inventory Management System
 
 A full-stack inventory management application built with Flask and Next.js.
 
