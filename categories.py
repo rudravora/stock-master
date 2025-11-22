@@ -1,128 +1,120 @@
 from flask import Blueprint, request, jsonify
 from models import db
 
-warehouses_bp = Blueprint('warehouses', __name__, url_prefix='/api/warehouses')
+categories_bp = Blueprint('categories', __name__, url_prefix='/api/categories')
 
-@warehouses_bp.route('', methods=['GET'])
-def get_warehouses():
-    """Get all warehouses"""
+@categories_bp.route('', methods=['GET'])
+def get_categories():
+    """Get all categories"""
     cursor = db.conn.cursor()
-    cursor.execute('SELECT * FROM warehouses ORDER BY name ASC')
-    warehouses = cursor.fetchall()
-    return jsonify([dict(w) for w in warehouses]), 200
+    cursor.execute('SELECT * FROM categories ORDER BY name ASC')
+    categories = cursor.fetchall()
+    return jsonify([dict(c) for c in categories]), 200
 
-@warehouses_bp.route('', methods=['POST'])
-def create_warehouse():
-    """Create new warehouse"""
+@categories_bp.route('', methods=['POST'])
+def create_category():
+    """Create new category"""
     data = request.json
     
     name = data.get('name')
-    code = data.get('code')
-    address = data.get('address', '')
+    description = data.get('description', '')
     
-    if not all([name, code]):
-        return jsonify({'error': 'Name and code are required'}), 400
+    if not name:
+        return jsonify({'error': 'Category name is required'}), 400
     
     cursor = db.conn.cursor()
     
-    # Check if code already exists
-    cursor.execute('SELECT * FROM warehouses WHERE code = ?', (code,))
+    # Check if category already exists
+    cursor.execute('SELECT * FROM categories WHERE name = ?', (name,))
     if cursor.fetchone():
-        return jsonify({'error': 'Warehouse code already exists'}), 400
+        return jsonify({'error': 'Category already exists'}), 400
     
     cursor.execute('''
-        INSERT INTO warehouses (name, code, address)
-        VALUES (?, ?, ?)
-    ''', (name, code, address))
+        INSERT INTO categories (name, description)
+        VALUES (?, ?)
+    ''', (name, description))
     
     db.conn.commit()
-    warehouse_id = cursor.lastrowid
+    category_id = cursor.lastrowid
     
-    cursor.execute('SELECT * FROM warehouses WHERE id = ?', (warehouse_id,))
-    warehouse = cursor.fetchone()
+    cursor.execute('SELECT * FROM categories WHERE id = ?', (category_id,))
+    category = cursor.fetchone()
     
-    return jsonify(dict(warehouse)), 201
+    return jsonify(dict(category)), 201
 
-@warehouses_bp.route('/<int:id>', methods=['GET'])
-def get_warehouse(id):
-    """Get single warehouse by ID"""
+@categories_bp.route('/<int:id>', methods=['GET'])
+def get_category(id):
+    """Get single category by ID"""
     cursor = db.conn.cursor()
-    cursor.execute('SELECT * FROM warehouses WHERE id = ?', (id,))
-    warehouse = cursor.fetchone()
+    cursor.execute('SELECT * FROM categories WHERE id = ?', (id,))
+    category = cursor.fetchone()
     
-    if not warehouse:
-        return jsonify({'error': 'Warehouse not found'}), 404
+    if not category:
+        return jsonify({'error': 'Category not found'}), 404
     
-    return jsonify(dict(warehouse)), 200
+    return jsonify(dict(category)), 200
 
-@warehouses_bp.route('/<int:id>', methods=['PUT'])
-def update_warehouse(id):
-    """Update warehouse"""
+@categories_bp.route('/<int:id>', methods=['PUT'])
+def update_category(id):
+    """Update category"""
     data = request.json
     cursor = db.conn.cursor()
     
-    cursor.execute('SELECT * FROM warehouses WHERE id = ?', (id,))
+    cursor.execute('SELECT * FROM categories WHERE id = ?', (id,))
     if not cursor.fetchone():
-        return jsonify({'error': 'Warehouse not found'}), 404
+        return jsonify({'error': 'Category not found'}), 404
     
     name = data.get('name')
-    address = data.get('address')
+    description = data.get('description')
     
     cursor.execute('''
-        UPDATE warehouses 
+        UPDATE categories 
         SET name = COALESCE(?, name),
-            address = COALESCE(?, address)
+            description = COALESCE(?, description)
         WHERE id = ?
-    ''', (name, address, id))
+    ''', (name, description, id))
     
     db.conn.commit()
     
-    cursor.execute('SELECT * FROM warehouses WHERE id = ?', (id,))
-    warehouse = cursor.fetchone()
+    cursor.execute('SELECT * FROM categories WHERE id = ?', (id,))
+    category = cursor.fetchone()
     
-    return jsonify(dict(warehouse)), 200
+    return jsonify(dict(category)), 200
 
-@warehouses_bp.route('/<int:id>', methods=['DELETE'])
-def delete_warehouse(id):
-    """Delete warehouse"""
+@categories_bp.route('/<int:id>', methods=['DELETE'])
+def delete_category(id):
+    """Delete category"""
     cursor = db.conn.cursor()
     
-    # Check if warehouse has stock
+    # Check if category has products
     cursor.execute('''
-        SELECT COUNT(*) as count FROM product_locations 
-        WHERE warehouse_id = ? AND quantity > 0
+        SELECT COUNT(*) as count FROM products 
+        WHERE category_id = ?
     ''', (id,))
     result = cursor.fetchone()
     
     if result['count'] > 0:
-        return jsonify({'error': 'Cannot delete warehouse with existing stock'}), 400
+        return jsonify({'error': 'Cannot delete category with existing products'}), 400
     
-    cursor.execute('DELETE FROM warehouses WHERE id = ?', (id,))
+    cursor.execute('DELETE FROM categories WHERE id = ?', (id,))
     db.conn.commit()
     
-    return jsonify({'message': 'Warehouse deleted successfully'}), 200
+    return jsonify({'message': 'Category deleted successfully'}), 200
 
-@warehouses_bp.route('/<int:id>/stock', methods=['GET'])
-def get_warehouse_stock(id):
-    """Get all products in a warehouse with stock levels"""
+@categories_bp.route('/<int:id>/products', methods=['GET'])
+def get_category_products(id):
+    """Get all products in a category"""
     cursor = db.conn.cursor()
     
-    cursor.execute('SELECT * FROM warehouses WHERE id = ?', (id,))
+    cursor.execute('SELECT * FROM categories WHERE id = ?', (id,))
     if not cursor.fetchone():
-        return jsonify({'error': 'Warehouse not found'}), 404
+        return jsonify({'error': 'Category not found'}), 404
     
     cursor.execute('''
-        SELECT 
-            pl.*,
-            p.name as product_name,
-            p.sku,
-            p.category,
-            p.unit_of_measure
-        FROM product_locations pl
-        JOIN products p ON pl.product_id = p.id
-        WHERE pl.warehouse_id = ?
-        ORDER BY p.name ASC
+        SELECT * FROM products 
+        WHERE category_id = ?
+        ORDER BY name ASC
     ''', (id,))
     
-    stock = cursor.fetchall()
-    return jsonify([dict(s) for s in stock]), 200
+    products = cursor.fetchall()
+    return jsonify([dict(p) for p in products]), 200
